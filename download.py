@@ -3,9 +3,9 @@ import os
 import bs4
 
 url_list = []
-base_url = 'https://www.webtoons.com/en/action/the-god-of-high-school/ep-440/viewer?title_no=66&episode_no=443'
 baseurl = 'https://www.webtoons.com/en/action/the-god-of-high-school/'
-extra = 'list?title_no=66'
+title = 'title_no=66'
+extra = 'list?'+title
 
 
 def get_episode_diff(url):
@@ -47,6 +47,6 @@ def download_episode(url, episode):
 if __name__ == "__main__":
     latest_episode, diff = get_episode_diff(baseurl+extra)
     while latest_episode > 0:
-        download_episode(url=baseurl+'ep-{}/viewer?title_no=66&episode_no={}'.format(
-            latest_episode, latest_episode+diff), episode=latest_episode)
+        download_episode(url=baseurl+'ep-{}/viewer?{}&episode_no={}'.format(
+            latest_episode, title, latest_episode+diff), episode=latest_episode)
         latest_episode -= 1
