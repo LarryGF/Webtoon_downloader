@@ -35,7 +35,7 @@ def get_pages(url):
 
     paginator = soup.find('div', class_='paginate')
 
-    for href in (href.get('href') for href in paginator.find_all('a')):
+    for href in (a.get('href') for a in paginator.find_all('a')):
         if href == '#':
             continue
         yield href
@@ -100,7 +100,7 @@ if __name__ == "__main__":
     )
 
     # you can get the full list of episodes with
-    es = set(episodes)
+    # es = set(episodes)
 
     # or lazy iterate with
     for e in episodes:
