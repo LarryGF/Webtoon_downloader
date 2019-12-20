@@ -22,8 +22,9 @@ def get_episode_diff(url):
     return (latest_episode, episode_diff)
 
 
-def download_episode(url):
+def download_episode(url, episode):
     print('Downloading: '+url)
+    os.makedirs(str(episode), exist_ok=True)
     res = requests.get(url)
     res.raise_for_status()
 
@@ -36,12 +37,14 @@ def download_episode(url):
 
     for index, img_url in enumerate(url_list):
         r = requests.get(img_url, headers={'Referer': url})
-        file = open(str(index)+'.JPEG', 'wb')
+        file = open(os.path.join(str(episode), str(index)+'.JPEG'), 'wb')
+        print('Saving image in: ' +
+              str(os.path.join(str(episode), str(index)+'.JPEG')))
         file.write(r.content)
         file.close()
 
 
 if __name__ == "__main__":
     latest_episode, diff = get_episode_diff(baseurl+extra)
-    download_episode(
-        baseurl+'ep-{}/viewer?title_no=66&episode_no={}'.format(latest_episode, latest_episode+diff))
+    download_episode(url=baseurl+'ep-{}/viewer?title_no=66&episode_no={}'.format(
+        latest_episode, latest_episode+diff), episode=latest_episode)
