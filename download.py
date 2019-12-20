@@ -16,7 +16,7 @@ title = '66'
 extra = 'list?title_no='+title
 
 
-def get_episodes_list(url):
+def get_episodes(url):
     res = requests.get(url)
     res.raise_for_status()
 
@@ -96,7 +96,7 @@ if __name__ == "__main__":
     )
 
     episodes = chain.from_iterable(
-        map(get_episodes_list, pages),
+        map(get_episodes, pages),
     )
 
     # you can get the full list of episodes with
