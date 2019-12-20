@@ -46,5 +46,7 @@ def download_episode(url, episode):
 
 if __name__ == "__main__":
     latest_episode, diff = get_episode_diff(baseurl+extra)
-    download_episode(url=baseurl+'ep-{}/viewer?title_no=66&episode_no={}'.format(
-        latest_episode, latest_episode+diff), episode=latest_episode)
+    while latest_episode > 0:
+        download_episode(url=baseurl+'ep-{}/viewer?title_no=66&episode_no={}'.format(
+            latest_episode, latest_episode+diff), episode=latest_episode)
+        latest_episode -= 1
