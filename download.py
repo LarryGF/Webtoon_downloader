@@ -1,19 +1,15 @@
 import requests
 import os
 import bs4
-
+import fire
 from itertools import chain
 
 all_episodes = []
 webtoonurl = 'https://www.webtoons.com'
-baseurl = 'https://www.webtoons.com/en/action/the-god-of-high-school/'
-if baseurl.endswith('/'):
-    name = baseurl.split('/')[-2]
-else:
-    name = baseurl.split('/')[-1]
 
-title = '66'
-extra = 'list?title_no='+title
+
+def get_base_values(url, number):
+    return url, number
 
 
 def get_episodes(url):
@@ -85,6 +81,16 @@ def download_episode(url):
 
 
 if __name__ == "__main__":
+    baseurl, title = fire.Fire(get_base_values)
+    extra = 'list?title_no='+str(title)
+
+    if baseurl.endswith('/'):
+        name = baseurl.split('/')[-2]
+    else:
+        name = baseurl.split('/')[-1]
+    print(baseurl)
+    print(title)
+
     pages = map(
         lambda href: f'{webtoonurl}{href}',
         get_pages(baseurl + extra),
