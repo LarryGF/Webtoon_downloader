@@ -19,8 +19,7 @@ def get_episodes(url):
     soup = bs4.BeautifulSoup(res.text, 'lxml')
 
     episode_list = soup.find('ul', id='_listUl')
-    for href in (a.get('href') for a in episode_list.find_all('a')):
-        yield href
+    return (a.get('href') for a in episode_list.find_all('a'))
 
 
 def get_pages(url):
