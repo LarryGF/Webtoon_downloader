@@ -28,4 +28,4 @@ This scripts downloads full webtoons from [Naver Webtoon](https://www.webtoons.c
 
 ## Thanks
 
-Special thanks to @frndmg for his help on fetching all episodes' urls in a smarter, simpler way.
+Special thanks to [@frndmg](https://github.com/frndmg) for his help on fetching all episodes' urls in a smarter, simpler way.
