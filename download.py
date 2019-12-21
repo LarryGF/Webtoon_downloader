@@ -4,7 +4,6 @@ import bs4
 import fire
 from itertools import chain
 
-all_episodes = []
 webtoonurl = 'https://www.webtoons.com'
 
 
@@ -74,6 +73,7 @@ if __name__ == "__main__":
         name = baseurl.split('/')[-2]
     else:
         name = baseurl.split('/')[-1]
+        baseurl = baseurl + '/'
 
     pages = map(
         lambda href: f'{webtoonurl}{href}',
@@ -94,11 +94,7 @@ if __name__ == "__main__":
     # or lazy iterate with
     for e in episodes:
         episode_dir = os.path.join(
-            webtoon_dir, str(e.split('/')[7].split('&')[-1]))
+            webtoon_dir, str(e.split('/')[7].split('&')[-1][len('episode_no='):]))
         os.makedirs(episode_dir, exist_ok=True)
         print('Created '+episode_dir+'\n')
         download_episode(url=e)
-        print(e)
-
-    # while latest_episode > 0:
-    #     latest_episode -= 1

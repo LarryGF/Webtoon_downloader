@@ -26,6 +26,6 @@ This scripts downloads full webtoons from [Naver Webtoon](https://www.webtoons.c
   - **title number**: 95
   - **download folder**: ./
 
-## Thanks
+## Collaborators
 
-Special thanks to [@frndmg](https://github.com/frndmg) for his help on fetching all episodes' urls in a smarter, simpler way.
+Big thanks to [@frndmg](https://github.com/frndmg) for his help on fetching all episodes' urls in a smarter, simpler way.
