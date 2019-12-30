@@ -12,6 +12,11 @@ thumbnails_dir = 'thumbnails'
 
 
 def get_all_comics_by_genre():
+    if not os.path.exists('db.json'):
+        webtoon_db = {}
+    else:
+        webtoon_db = json.load(open('db.json'))
+
     os.makedirs(thumbnails_dir, exist_ok=True)
     res = requests.get(genreurl)
     soup = bs4.BeautifulSoup(res.text, 'lxml')
@@ -34,10 +39,28 @@ def get_all_comics_by_genre():
                     'p', class_="author").text
                 info_dict[title]['likes'] = li.find(
                     'em', class_="grade_num").text
-                info_dict[title]['img_url'] = li.find('img').get('src')
+                img_url = li.find('img').get('src')
+                info_dict[title]['img_url'] = img_url
                 info_dict[title]['img_path'] = os.path.join(
                     thumbnails_dir, title+'.jpg')
+                webtoon_db.setdefault('thumbnails', {})
+                if webtoon_db['thumbnails'].setdefault(img_url, False):
+                    print(str(title)+'.JPEG ', 'has already been downloaded')
+                    continue
 
+                print('\t Downloading '+img_url)
+                r = requests.get(img_url, headers={'Referer': genreurl})
+                file = open(os.path.join(
+                    thumbnails_dir, str(title)+'.JPEG'), 'wb')
+                print('\t Saving image in: ' +
+                      str(os.path.join(thumbnails_dir, str(title)+'.JPEG'))+'\n')
+
+                file.write(r.content)
+                file.close()
+                webtoon_db['thumbnails'][img_url] = True
+                db_file = open('db.json', 'w')
+                json.dump(webtoon_db, db_file, indent=2)
+                db_file.close()
             genres[contents[index-1].text] = info_dict
     json.dump(genres, open('genres.json', 'w'), indent=2)
 
@@ -103,7 +126,7 @@ def download_episode(url: str, db: dict, name: str, chapter: str):
         file.close()
         db[name][chapter][img_url] = True
         db_file = open('db.json', 'w')
-        json.dump(db, db_file)
+        json.dump(db, db_file, indent=2)
         db_file.close()
 
 
