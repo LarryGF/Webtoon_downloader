@@ -4,11 +4,17 @@ import bs4
 import fire
 import json
 from itertools import chain
+import aiohttp
+import aiofiles
+import asyncio
 
+sem = asyncio.Semaphore()
 webtoonurl = 'https://www.webtoons.com'
 
 
-def get_base_values(url='https://www.webtoons.com/en/fantasy/tower-of-god/', number='95', download_folder='./'):
+def get_base_values(url='https://www.webtoons.com/en/fantasy/tower-of-god/',
+                    number='95',
+                    download_folder='./'):
     return url, number, download_folder
 
 
@@ -40,10 +46,31 @@ def get_pages(url):
         return get_pages(f'{webtoonurl}{href}')
 
 
-def download_episode(url: str, db: dict, name: str, chapter: str):
+async def download_jpeg(img_url, url, index, episode_dir, db, name, chapter):
+    async with aiohttp.ClientSession() as session:
+            print('\t Downloading ' + img_url)
+            async with session.get(img_url, headers={'Referer': url}) as r:
+
+                path = os.path.join(episode_dir,
+                                    f'{index:0>3d}.JPEG')
+                async with aiofiles.open(path, 'wb') as file:
+
+                    print('\t Saving image in: ' +
+                        path + '\n')
+
+                    await file.write(await r.read())
+
+                async with sem:
+                    db[name][chapter][img_url] = True
+                    async with aiofiles.open('db.json', 'w') as db_file:
+                        print(db)
+                        await db_file.write(json.dumps(db, indent=2, ensure_ascii=False))
+
+
+async def download_episode(url: str, db: dict, name: str, chapter: str):
     url_list = []
 
-    print('Downloading episode: '+url+'\n')
+    print('Downloading episode: ' + url + '\n')
     res = requests.get(url)
     res.raise_for_status()
 
@@ -54,28 +81,20 @@ def download_episode(url: str, db: dict, name: str, chapter: str):
     for image in img_list:
         url_list.append(image.get('data-url'))
 
+    img_coroutines = []
     for index, img_url in enumerate(url_list):
         if db[name][chapter].setdefault(img_url, False):
-            print(str(index)+'.JPEG ', 'has already been downloaded')
+            print(str(index) + '.JPEG ', 'has already been downloaded')
             continue
 
-        print('\t Downloading '+img_url)
-        r = requests.get(img_url, headers={'Referer': url})
-        file = open(os.path.join(episode_dir, str(index)+'.JPEG'), 'wb')
-        print('\t Saving image in: ' +
-              str(os.path.join(episode_dir, str(index)+'.JPEG'))+'\n')
+        img_coroutines.append(download_jpeg(img_url, url, index, episode_dir, db, name, chapter))
 
-        file.write(r.content)
-        file.close()
-        db[name][chapter][img_url] = True
-        db_file = open('db.json', 'w')
-        json.dump(db, db_file)
-        db_file.close()
+    await asyncio.gather(*img_coroutines)
 
 
 if __name__ == "__main__":
     baseurl, title, download_folder = fire.Fire(get_base_values)
-    extra = 'list?title_no='+str(title)
+    extra = 'list?title_no=' + str(title)
     if not os.path.exists('db.json'):
         webtoon_db = {}
     else:
@@ -92,9 +111,7 @@ if __name__ == "__main__":
         get_pages(baseurl + extra),
     )
 
-    episodes = chain.from_iterable(
-        map(get_episodes, pages),
-    )
+    episodes = chain.from_iterable(map(get_episodes, pages), )
     webtoon_db.setdefault(name.replace('-', ' '), {})
     # you can get the full list of episodes with
     # es = set(episodes)
@@ -103,14 +120,22 @@ if __name__ == "__main__":
     os.makedirs(webtoon_dir, exist_ok=True)
     print('Created ', webtoon_dir, '\n')
 
+    futures = []
     # or lazy iterate with
     for e in episodes:
         episode = str(e.split('/')[7].split('&')[-1][len('episode_no='):])
         webtoon_db[name.replace('-', ' ')].setdefault(episode, {})
 
-        episode_dir = os.path.join(
-            webtoon_dir, episode)
+        episode_dir = os.path.join(webtoon_dir, episode)
         os.makedirs(episode_dir, exist_ok=True)
-        print('Created '+episode_dir+'\n')
-        download_episode(url=e, db=webtoon_db,
-                         name=name.replace('-', ' '), chapter=episode)
+        print('Created ' + episode_dir + '\n')
+        ans = download_episode(url=e,
+                         db=webtoon_db,
+                         name=name.replace('-', ' '),
+                         chapter=episode)
+
+        futures.append(ans)
+
+    loop = asyncio.get_event_loop()
+
+    loop.run_until_complete(asyncio.gather(*futures))
