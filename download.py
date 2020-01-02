@@ -46,20 +46,26 @@ def get_pages(url):
         return get_pages(f'{webtoonurl}{href}')
 
 
-async def download_jpeg(img_url, url, index, episode_dir):
+async def download_jpeg(img_url, url, index, episode_dir, db, name, chapter):
     async with aiohttp.ClientSession() as session:
             print('\t Downloading ' + img_url)
             async with session.get(img_url, headers={'Referer': url}) as r:
 
+                path = os.path.join(episode_dir,
+                                    f'{index:0>3d}.JPEG')
+                async with aiofiles.open(path, 'wb') as file:
+
+                    print('\t Saving image in: ' +
+                        path + '\n')
+
+                    await file.write(await r.read())
+
                 async with sem:
-                    path = os.path.join(episode_dir,
-                                     f'{index:0>3d}.JPEG')
-                    async with aiofiles.open(path, 'wb') as file:
+                    db[name][chapter][img_url] = True
+                    async with aiofiles.open('db.json', 'w') as db_file:
+                        print(db)
+                        await db_file.write(json.dumps(db, indent=2, ensure_ascii=False))
 
-                        print('\t Saving image in: ' +
-                            path + '\n')
-
-                        await file.write(await r.read())
 
 async def download_episode(url: str, db: dict, name: str, chapter: str):
     url_list = []
@@ -81,7 +87,7 @@ async def download_episode(url: str, db: dict, name: str, chapter: str):
             print(str(index) + '.JPEG ', 'has already been downloaded')
             continue
 
-        img_coroutines.append(download_jpeg(img_url, url, index, episode_dir))
+        img_coroutines.append(download_jpeg(img_url, url, index, episode_dir, db, name, chapter))
 
     await asyncio.gather(*img_coroutines)
 
