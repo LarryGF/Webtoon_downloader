@@ -25,9 +25,11 @@ soupsieve = "==1.9.5"
 typed-ast = "==1.4.0"
 urllib3 = "==1.25.7"
 wrapt = "==1.11.2"
-fire = "*"
+fire = "==0.2.1"
 aiohttp = "*"
 aiofiles = "*"
+termcolor = "==1.1.0"
+yaml = "*"
 
 [requires]
 python_version = "3.7"
