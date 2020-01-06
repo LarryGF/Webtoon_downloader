@@ -9,7 +9,7 @@ import aiohttp
 import aiofiles
 import asyncio
 import yaml
-
+from time import sleep
 sem = asyncio.Semaphore()
 webtoonurl = 'https://www.webtoons.com'
 
@@ -140,6 +140,7 @@ if __name__ == "__main__":
         loop = asyncio.get_event_loop()
         # or lazy iterate with
         for e in episodes:
+            sleep(1)
             episode = str(e.split('/')[7].split('&')[-1][len('episode_no='):])
             webtoon_db[name.replace('-', ' ')].setdefault(episode, {})
 
@@ -152,5 +153,3 @@ if __name__ == "__main__":
                                    chapter=episode)
 
             loop.run_until_complete(ans)
-
-
