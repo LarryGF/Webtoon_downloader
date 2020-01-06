@@ -137,6 +137,7 @@ if __name__ == "__main__":
         print(os.path.abspath(webtoon_dir))
 
         futures = []
+        loop = asyncio.get_event_loop()
         # or lazy iterate with
         for e in episodes:
             episode = str(e.split('/')[7].split('&')[-1][len('episode_no='):])
@@ -150,8 +151,6 @@ if __name__ == "__main__":
                                    name=name.replace('-', ' '),
                                    chapter=episode)
 
-            futures.append(ans)
+            loop.run_until_complete(ans)
 
-        loop = asyncio.get_event_loop()
 
-        loop.run_until_complete(asyncio.gather(*futures))
